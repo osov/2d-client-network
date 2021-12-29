@@ -1,0 +1,18 @@
+{
+  "name": "2d-client-network",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ecs-threejs": "file:../ecs-threejs",
+    "three": "^0.136.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.135.0"
+  }
+}
