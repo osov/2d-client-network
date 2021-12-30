@@ -2,16 +2,15 @@ import {Vector2} from 'three';
 import {BaseStrategy, TypPack, IStatePosRot} from './BaseStrategy';
 import {interpolateWithWrapping, interpolateVectorWithWrap} from '../core/utils';
 
-export enum TypeStrategy{
+export enum TypeInStrategy{
 	PosAngle,
 	PosAngleVelServer,
 	PosAngleVelCalc
 }
 
 export class InterpolateStrategy extends BaseStrategy{
-	public typStrategy:TypeStrategy = TypeStrategy.PosAngle;
+	public typStrategy:TypeInStrategy = TypeInStrategy.PosAngle;
 	private buffer:IStatePosRot[] = [];
-	private currentVelocity:Vector2 = new Vector2();
 	private isBlink:boolean;
 	private blinkTime:number;
 	private rate:number = 0.01;
@@ -62,7 +61,7 @@ export class InterpolateStrategy extends BaseStrategy{
 			// если будем постоянно экстраполировать, а на сервере объект неподвижен -> не передает информацию о позиции, т.к. стоит в одной позиции
 			// а на клиенте из-за экстраполяции мы уйдем слишком далеко и будем видеть то, чего нет на этом месте.
 			if (this.lastPackTime + 1 > this.net.now())
-				this.state.position.add(this.currentVelocity.clone().multiplyScalar(deltaTime)); // Экстраполяция когда опаздывают обновления; todo для локального игрока в идеале бы и вращение
+				this.state.position.add(this.state.velocity.clone().multiplyScalar(deltaTime)); // Экстраполяция когда опаздывают обновления; todo для локального игрока в идеале бы и вращение
 			else
 				this.state.position.copy(this.lastPack.position);
 			return true;
@@ -94,12 +93,14 @@ export class InterpolateStrategy extends BaseStrategy{
 				return true;
 			}
 
-			if (this.typStrategy == TypeStrategy.PosAngle)
+			if (this.typStrategy == TypeInStrategy.PosAngle)
 			{
 				this.state.position.copy(last.position).lerp(next.position, r);
+				var ft = next.serverTime - last.serverTime;
+				this.state.velocity.copy(next.position).sub(last.position).divideScalar(ft);
 			}
 
-			else if (this.typStrategy == TypeStrategy.PosAngleVelServer)
+			else if (this.typStrategy == TypeInStrategy.PosAngleVelServer)
 			{
 				var curPos = this.state.position.clone();
 				this.state.position.copy(last.position).lerp(next.position, r);
@@ -108,7 +109,7 @@ export class InterpolateStrategy extends BaseStrategy{
 				var t = Math.pow(2, -this.rate * deltaTime);
 				this.state.position.lerp(curPos, t);
 			}
-			else if (this.typStrategy == TypeStrategy.PosAngleVelCalc)
+			else if (this.typStrategy == TypeInStrategy.PosAngleVelCalc)
 			{
 				var curPos = this.state.position.clone();
 				this.state.position.copy(last.position).lerp(next.position, r);
