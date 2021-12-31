@@ -1,6 +1,9 @@
 import {EventDispatcher} from 'three';
 import {WsClient} from './WsClient';
-import {MessagesHelper, IMessage, MessageScInit, IScInit, MessageScClose, IScClose,  MessageScPong, IScPong, MessageScTimestamp, IScTimestamp} from '../protocol/Protocol';
+import {DataHelper} from '../protocol/DataHelper';
+import {MessagesHelper} from '../protocol/Protocol';
+import * as protocol from '../protocol/Protocol';
+
 import {ExponentialMovingAverage} from '../core/ExponentialMovingAverage';
 
 export interface InitNetParams{
@@ -25,6 +28,7 @@ export class NetClient extends EventDispatcher{
 	private rtt:ExponentialMovingAverage = new ExponentialMovingAverage(10); // экспоненциально скользящая средняя
 	private startServerTime:number;
 	private lastRecvServerTime:number;
+	private viewer:DataHelper;
 	private messagesHelper:typeof MessagesHelper;
 	private initParams:InitNetParams;
 	private eventCallbacks:{[k:string]:[]} = {};
@@ -46,6 +50,7 @@ export class NetClient extends EventDispatcher{
 		this.socket.addEventListener('open', this.onOpen.bind(this));
 		this.socket.addEventListener('close', this.onClose.bind(this));
 		this.messagesHelper = messagesHelper;
+		this.viewer = new DataHelper();
 		NetClient.instance = this;
 	}
 
@@ -57,7 +62,7 @@ export class NetClient extends EventDispatcher{
 
 	private onOpen(event:any)
 	{
-		this.messagesHelper.PackCsConnect({idSession:this.initParams.idSession});
+		this.messagesHelper.PackCsConnect(this.viewer, {idSession:this.initParams.idSession});
 	}
 
 	private onClose()
@@ -69,7 +74,7 @@ export class NetClient extends EventDispatcher{
 	private onPack(event:any)
 	{
 		var buffer = new Uint8Array(event.data);
-		var packs = this.messagesHelper.UnPackMessages(buffer);
+		var packs = this.messagesHelper.UnPackMessages(this.viewer, buffer);
 		if (packs.length == 0)
 			return;
 		for (var i = 0; i < packs.length; i++)
@@ -79,20 +84,20 @@ export class NetClient extends EventDispatcher{
 		}
 	}
 
-	private onMessage(typ:number, srcMessage:IMessage)
+	private onMessage(typ:number, srcMessage:protocol.IMessage)
 	{
 		var isSystem = false;
 		// init
-		if (typ == MessageScInit.GetType())
+		if (typ == protocol.MessageScInit.GetType())
 		{
 			isSystem = true;
-			let message = srcMessage as IScInit;
+			let message = srcMessage as protocol.IScInit;
 			this.startServerTime = Number(message.serverStartTime);
 			this.sendPing();
 			console.log("Подключение успешно");
 		}
 		// close
-		else if (typ == MessageScClose.GetType())
+		else if (typ == protocol.MessageScClose.GetType())
 		{
 			isSystem = true;
 			this.socket.stop();
@@ -100,16 +105,16 @@ export class NetClient extends EventDispatcher{
 			this.dispatchEvent({type:"onEnd"});
 		}
 		// pong
-		else if (typ == MessageScPong.GetType())
+		else if (typ == protocol.MessageScPong.GetType())
 		{
 			isSystem = true;
-			this.onPong(srcMessage as IScPong)
+			this.onPong(srcMessage as protocol.IScPong)
 		}
 		// timestamp
-		else if (typ == MessageScTimestamp.GetType())
+		else if (typ == protocol.MessageScTimestamp.GetType())
 		{
 			isSystem = true;
-			let message = srcMessage as IScTimestamp;
+			let message = srcMessage as protocol.IScTimestamp;
 			this.lastRecvServerTime = this.startServerTime + message.offsetTime;
 		}
 		this.dispatchEvent({type:'message', typ:typ, message:srcMessage, system:isSystem});
@@ -162,11 +167,11 @@ export class NetClient extends EventDispatcher{
 
 	private sendPing()
 	{
-		this.messagesHelper.PackCsPing({clientTime:BigInt(this.now())});
+		this.messagesHelper.PackCsPing(this.viewer, {clientTime:BigInt(this.now())});
 		this.sendBuffer();
 	}
 
-	private onPong(message:IScPong)
+	private onPong(message:protocol.IScPong)
 	{
 		this.cntPong++;
 		if (this.cntPong == 20)
@@ -190,7 +195,7 @@ export class NetClient extends EventDispatcher{
 
 	sendBuffer()
 	{
-		var data = this.messagesHelper.GetPackedArray();
+		var data = this.viewer.toArray();
 		if (data.byteLength > 0)
 			this.socket.send(data);
 		else

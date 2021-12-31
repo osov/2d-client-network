@@ -54,3 +54,16 @@ export function vectorToRange(vec:Vector2, wrap:Vector2)
 	vec.set(toRange(vec.x, -wrap.x/2, wrap.x/2), toRange(vec.y, -wrap.y/2, wrap.y/2));
 	return vec;
 }
+
+export function mergeBuffer(buffer1:Uint8Array, buffer2:Uint8Array)
+{
+	var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+	tmp.set(new Uint8Array(buffer1), 0);
+	tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+	return tmp.buffer;
+}
+
+export function copyBuffer(buffer:Uint8Array)
+{
+	return buffer.slice(0);
+}

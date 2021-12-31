@@ -1,23 +1,16 @@
 const emptyByteArray = new Uint8Array(0);
 
 export class DataHelper {
-	private static writeBuffer: Uint8Array = new Uint8Array(256);
-	private static writeBufferView: DataView = new DataView(DataHelper.writeBuffer.buffer);
-	private static instance: DataHelper;
-	public static getInstance(): DataHelper {
-		if (!DataHelper.instance)
-			DataHelper.instance = new DataHelper();
-		return DataHelper.instance;
-	}
-
+	private writeBuffer: Uint8Array = new Uint8Array(256);
+	private writeBufferView: DataView = new DataView(this.writeBuffer.buffer);
 	private buffer: Uint8Array;
 	private view: DataView;
 	index: number; // read pointer
 	length: number; // write pointer
 
-	private constructor(){
-		this.buffer = DataHelper.writeBuffer;
-		this.view = DataHelper.writeBufferView;
+	public constructor(){
+		this.buffer = this.writeBuffer;
+		this.view = this.writeBufferView;
 		this.index = 0;
 		this.length = 0;
 	}
@@ -30,8 +23,8 @@ export class DataHelper {
 	}
 
 	startWriting(): void {
-		this.buffer = DataHelper.writeBuffer;
-		this.view = DataHelper.writeBufferView;
+		this.buffer = this.writeBuffer;
+		this.view = this.writeBufferView;
 		this.index = 0;
 		this.length = 0;
 	}
@@ -89,6 +82,16 @@ export class DataHelper {
 	}
 
 	writeBytes(value: Uint8Array): void {
+		const byteCount = value.length;
+		if (byteCount === 0) {
+			return;
+		}
+		const index = this.length;
+		this.growBy(byteCount);
+		this.buffer.set(value, index);
+	}
+
+	writeBytesWithLength(value: Uint8Array): void {
 		const byteCount = value.length;
 		this.writeUint32(byteCount);
 		if (byteCount === 0) {
