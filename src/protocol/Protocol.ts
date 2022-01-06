@@ -276,7 +276,7 @@ export const MessageScInit = {
 
 export interface IVector2 extends IMessage{
 	readonly x : number;
-	readonly y : number;
+	readonly y : number;	
 }
 
 export const MessageVector2 = {
@@ -326,7 +326,7 @@ export interface IEntityInfo extends IMessage{
 	readonly id : number;
 	readonly position : IVector2;
 	readonly velocity : IVector2;
-	readonly angle : number;
+	readonly angle : number;	
 }
 
 export const MessageEntityInfo = {
@@ -383,7 +383,7 @@ export const MessageEntityInfo = {
 
 
 export interface IScWorldStateUpdate extends IMessage{
-	readonly list : Array<IEntityInfo>;
+	readonly list : Array<IEntityInfo>;	
 }
 
 export const MessageScWorldStateUpdate = {
@@ -401,7 +401,7 @@ export const MessageScWorldStateUpdate = {
 		a = message.list;
 		view.writeVariant(a.length);
 		a.forEach(function(it, vi) {
-			if (it == null)
+			if (it == null) 
 				throw new Error('protogen: protocol.sc_world_state_update.list array is null: '+ message.list);
 			MessageEntityInfo.PackMessage(it, view);
 		});
@@ -431,7 +431,7 @@ export const MessageScWorldStateUpdate = {
 
 
 export interface IScRemoveE extends IMessage{
-	readonly id : number;
+	readonly id : number;	
 }
 
 export const MessageScRemoveE = {
@@ -472,7 +472,7 @@ export const MessageScRemoveE = {
 
 export interface ICsInput extends IMessage{
 	readonly key : number;
-	readonly state : number;
+	readonly state : number;	
 }
 
 export const MessageCsInput = {
@@ -519,7 +519,7 @@ export const MessageCsInput = {
 
 
 export interface ICsMouseAngle extends IMessage{
-	readonly angle : number;
+	readonly angle : number;	
 }
 
 export const MessageCsMouseAngle = {
@@ -560,7 +560,7 @@ export const MessageCsMouseAngle = {
 
 export interface IScJoin extends IMessage{
 	readonly idUser : number;
-	readonly id : number;
+	readonly idEntity : number;	
 }
 
 export const MessageScJoin = {
@@ -579,9 +579,9 @@ export const MessageScJoin = {
 			throw new Error('protogen: protocol.sc_join.id_user out of reach: '+ message.idUser);
 		view.writeUint32(message.idUser);
 
-		if (message.id > 65535 || message.id < 0)
-			throw new Error('protogen: protocol.sc_join.id out of reach: '+ message.id);
-		view.writeUint16(message.id);
+		if (message.idEntity > 65535 || message.idEntity < 0)
+			throw new Error('protogen: protocol.sc_join.id_entity out of reach: '+ message.idEntity);
+		view.writeUint16(message.idEntity);
 
 		const after = view.length;
 		return after - before;
@@ -591,11 +591,11 @@ export const MessageScJoin = {
 
 		var prop_idUser = view.readUint32();
 
-		var prop_id = view.readUint16();
+		var prop_idEntity = view.readUint16();
 
 		var message:IScJoin = {
 				idUser : prop_idUser,
-				id : prop_id,
+				idEntity : prop_idEntity,
 		};
 		return message;
 	},
@@ -608,7 +608,7 @@ export const MessageScJoin = {
 
 export interface IScLeave extends IMessage{
 	readonly idUser : number;
-	readonly id : number;
+	readonly id : number;	
 }
 
 export const MessageScLeave = {
@@ -656,7 +656,7 @@ export const MessageScLeave = {
 
 export interface IEntityBase extends IMessage{
 	readonly id : number;
-	readonly position : IVector2;
+	readonly position : IVector2;	
 }
 
 export const MessageEntityBase = {
@@ -704,7 +704,7 @@ export interface IEntityBullet extends IMessage{
 	readonly id : number;
 	readonly position : IVector2;
 	readonly velocity : IVector2;
-	readonly angle : number;
+	readonly angle : number;	
 }
 
 export const MessageEntityBullet = {
@@ -778,6 +778,25 @@ export const TypMessages = {
 	13: MessageScLeave,
 	14: MessageEntityBase,
 	15: MessageEntityBullet,
+}
+
+export const IdMessages = {
+	ICsConnect:0,
+	IScClose:1,
+	ICsPing:2,
+	IScPong:3,
+	IScTimestamp:4,
+	IScInit:5,
+	IVector2:6,
+	IEntityInfo:7,
+	IScWorldStateUpdate:8,
+	IScRemoveE:9,
+	ICsInput:10,
+	ICsMouseAngle:11,
+	IScJoin:12,
+	IScLeave:13,
+	IEntityBase:14,
+	IEntityBullet:15,
 }
 
 export const MessagesHelper = {

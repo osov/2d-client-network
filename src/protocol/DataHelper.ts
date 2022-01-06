@@ -138,7 +138,7 @@ export class DataHelper {
 	* Reads a length-prefixed UTF-8-encoded string.
 	*/
 	readString(): string {
-		const lengthBytes = this.readUint32();
+		const lengthBytes = this.readVariant();
 		if (lengthBytes === 0)
 			return '';
 
@@ -181,6 +181,42 @@ export class DataHelper {
 		return result;
 	}
 
+	getStringLen(value:string)
+	{
+		const stringLength = value.length;
+		let codePoint: number;
+		var len = 0;
+		for (let i = 0; i < stringLength; i++) {
+			// decode UTF-16
+			const a = value.charCodeAt(i);
+			if (i + 1 === stringLength || a < 0xD800 || a >= 0xDC00) {
+				codePoint = a;
+			} else {
+				const b = value.charCodeAt(++i);
+				codePoint = (a << 10) + b + (0x10000 - (0xD800 << 10) - 0xDC00);
+			}
+
+			// encode UTF-8
+			if (codePoint < 0x80) {
+				len++;
+			} else {
+				if (codePoint < 0x800) {
+					len++;
+				} else {
+					if (codePoint < 0x10000) {
+						len++;
+					} else {
+						len++;
+						len++;
+					}
+					len++;
+				}
+				len++;
+			}
+		}
+		return len;
+	}
+
 	/**
 	* Writes a length-prefixed UTF-8-encoded string.
 	*/
@@ -189,20 +225,21 @@ export class DataHelper {
 		// The number of characters in the string
 		const stringLength = value.length;
 		// If the string is empty avoid unnecessary allocations by writing the zero length and returning.
-		if (stringLength === 0) {
-			this.writeUint32(0);
+		if (stringLength === 0 || value === undefined) {
+			this.writeVariant(0);
 			return;
 		}
 		// value.length * 3 is an upper limit for the space taken up by the string:
 		// https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encodeInto#Buffer_Sizing
 		// We add 4 for our length prefix.
-		const maxBytes = 4 + stringLength * 3;
-
-		// Reallocate if necessary, then write to this.length + 4.
-		this.guaranteeBufferLength(this.length + maxBytes);
+		const maxBytes = this.getStringLen(value);
+		this.guaranteeBufferLength(this.length + 4);
+		const vl = this.writeVariant(maxBytes);
+		// Reallocate if necessary, then write to this.length
+		this.guaranteeBufferLength(this.length + vl + maxBytes);
 
 		// Start writing the string from here:
-		let w = this.length + 4;
+		let w = this.length;
 		const start = w;
 
 		let codePoint: number;
@@ -240,7 +277,8 @@ export class DataHelper {
 		const written = w - start;
 
 		// Write the length prefix, then skip over it and the written string.
-		this.view.setUint32(this.length, written, true);
-		this.length += 4 + written;
+		//this.view.setUint32(this.length, written, true);
+
+		this.length += written;
 	}
 }

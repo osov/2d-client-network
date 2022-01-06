@@ -49,6 +49,11 @@ export function toRange(val:number, min:number, max:number)
 	}
 }
 
+export function rangeAngle(angle:number)
+{
+	return toRange(angle, 0, 360)
+}
+
 export function vectorToRange(vec:Vector2, wrap:Vector2)
 {
 	vec.set(toRange(vec.x, -wrap.x/2, wrap.x/2), toRange(vec.y, -wrap.y/2, wrap.y/2));

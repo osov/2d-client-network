@@ -1,7 +1,7 @@
 import {EventDispatcher} from 'three';
 import {WsClient} from './WsClient';
 import {DataHelper} from '../protocol/DataHelper';
-import {MessagesHelper} from '../protocol/Protocol';
+import {MessagesHelper, TypMessages} from '../protocol/Protocol';
 import * as protocol from '../protocol/Protocol';
 
 import {ExponentialMovingAverage} from '../core/ExponentialMovingAverage';
@@ -13,8 +13,8 @@ export interface InitNetParams{
 export class NetClient extends EventDispatcher{
 
 	private batchInterval = 1/30;
-	private maxInterpolate = 0.5;
-	public interpolateTime:number = 0.15;
+	private maxInterpolate = 500;
+	public interpolateTime:number = 150;
 	private socket:WsClient;
 	private url:string;
 	private localServerTime:number = 0;
@@ -28,7 +28,8 @@ export class NetClient extends EventDispatcher{
 	private rtt:ExponentialMovingAverage = new ExponentialMovingAverage(10); // экспоненциально скользящая средняя
 	private startServerTime:number;
 	private lastRecvServerTime:number;
-	private viewer:DataHelper;
+	private viewerReader:DataHelper;
+	private viewerWriter:DataHelper;
 	private messagesHelper:typeof MessagesHelper;
 	private initParams:InitNetParams;
 	private eventCallbacks:{[k:string]:[]} = {};
@@ -50,7 +51,8 @@ export class NetClient extends EventDispatcher{
 		this.socket.addEventListener('open', this.onOpen.bind(this));
 		this.socket.addEventListener('close', this.onClose.bind(this));
 		this.messagesHelper = messagesHelper;
-		this.viewer = new DataHelper();
+		this.viewerReader = new DataHelper();
+		this.viewerWriter = new DataHelper();
 		NetClient.instance = this;
 	}
 
@@ -62,7 +64,8 @@ export class NetClient extends EventDispatcher{
 
 	private onOpen(event:any)
 	{
-		this.messagesHelper.PackCsConnect(this.viewer, {idSession:this.initParams.idSession});
+		this.messagesHelper.PackCsConnect(this.viewerWriter, {idSession:this.initParams.idSession});
+		this.sendBuffer();
 	}
 
 	private onClose()
@@ -74,7 +77,7 @@ export class NetClient extends EventDispatcher{
 	private onPack(event:any)
 	{
 		var buffer = new Uint8Array(event.data);
-		var packs = this.messagesHelper.UnPackMessages(this.viewer, buffer);
+		var packs = this.messagesHelper.UnPackMessages(this.viewerReader, buffer);
 		if (packs.length == 0)
 			return;
 		for (var i = 0; i < packs.length; i++)
@@ -86,6 +89,7 @@ export class NetClient extends EventDispatcher{
 
 	private onMessage(typ:number, srcMessage:protocol.IMessage)
 	{
+		//console.log(typ, srcMessage);
 		var isSystem = false;
 		// init
 		if (typ == protocol.MessageScInit.GetType())
@@ -123,7 +127,7 @@ export class NetClient extends EventDispatcher{
 	private updateInterpolateTime()
 	{
 		var now = this.now();
-		if (now < this.lastInterpolateTime + 5)
+		if (now < this.lastInterpolateTime + 500)
 			return;
 		this.lastInterpolateTime = now;
 		var maxOffsetServer = (this.batchInterval + 1 / 60) * 1.5;
@@ -137,7 +141,7 @@ export class NetClient extends EventDispatcher{
 			if (perc > 30)
 			{
 				this.interpolateTime = calcInterp * 1.2;
-				console.log("Уменьшаем время интерполяции:", (old * 1000), " -> ", (this.interpolateTime * 1000));
+				console.log("Уменьшаем время интерполяции:", Number(old.toFixed(2)), " -> ", Number(this.interpolateTime.toFixed(2)));
 			}
 		}
 		// интерполяция не успевает, т.к. обновления приходят с большей задержкой
@@ -146,7 +150,7 @@ export class NetClient extends EventDispatcher{
 			this.interpolateTime = calcInterp * 1.2; // берем 120% от рассчетной
 			if (this.interpolateTime > this.maxInterpolate)
 				this.interpolateTime = this.maxInterpolate;
-			console.log("Увеличиваем время интерполяции:", (old * 1000), " -> ", (this.interpolateTime * 1000));
+			console.log("Увеличиваем время интерполяции:", Number(old.toFixed(2)), " -> ", Number(this.interpolateTime.toFixed(2)));
 		}
 	}
 
@@ -167,7 +171,7 @@ export class NetClient extends EventDispatcher{
 
 	private sendPing()
 	{
-		this.messagesHelper.PackCsPing(this.viewer, {clientTime:BigInt(this.now())});
+		this.messagesHelper.PackCsPing(this.viewerWriter, {clientTime:BigInt(this.now())});
 		this.sendBuffer();
 	}
 
@@ -175,12 +179,11 @@ export class NetClient extends EventDispatcher{
 	{
 		this.cntPong++;
 		if (this.cntPong == 20)
-			this.pingFrequency = 2;
+			this.pingFrequency = 2000;
 
 		var now = this.now();
 		var newRtt = now - Number(message.clientTime);
 		this.rtt.add(newRtt);
-
 		if (newRtt < this.bestRtt)
 		{
 			this.bestRtt = newRtt;
@@ -193,11 +196,21 @@ export class NetClient extends EventDispatcher{
 		setTimeout(this.sendPing.bind(this), this.pingFrequency);
 	}
 
+	sendMessage(idMessage:number, message:protocol.IMessage, typMessages:typeof TypMessages)
+	{
+		var messagePacker:any = typMessages[idMessage as keyof protocol.IMessage];
+		messagePacker.Pack(this.viewerWriter, message);
+		return this.sendBuffer();
+	}
+
 	sendBuffer()
 	{
-		var data = this.viewer.toArray();
+		var data = this.viewerWriter.toArray();
 		if (data.byteLength > 0)
+		{
 			this.socket.send(data);
+			this.viewerWriter.startWriting();
+		}
 		else
 			console.warn("Нет данных для отправки");
 	}

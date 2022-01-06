@@ -1,6 +1,7 @@
 import {EventDispatcher} from 'three';
 import {NetClient, InitNetParams} from '../network/NetClient';
 import {MessagesHelper, IMessage, TypMessages} from '../protocol/Protocol';
+import * as protocol from '../protocol/Protocol';
 import {TimeSystem} from './TimeSystem';
 
 type ValueOf<T> = T[keyof T];
@@ -17,15 +18,16 @@ export class ClientSystem extends EventDispatcher{
 
 	private net:NetClient;
 	private timeSystem:TimeSystem;
-	private messagesHelper:typeof MessagesHelper;
+	private typMessages:typeof TypMessages;
 	private eventCallbacks:{[k:string]:CallbackInfo[]} = {};
+	private idLocalUser:number = -1;
 
-	constructor(url:string, messagesHelper:typeof MessagesHelper)
+	constructor(url:string, messagesHelper:typeof MessagesHelper, typMessages:typeof TypMessages)
 	{
 		super();
 		this.net = new NetClient(url, messagesHelper);
 		this.timeSystem = new TimeSystem();
-		this.messagesHelper = messagesHelper;
+		this.typMessages = typMessages;
 	}
 
 	init(params:InitNetParams)
@@ -37,9 +39,33 @@ export class ClientSystem extends EventDispatcher{
 	private onMessage(e:any)
 	{
 		var event:{typ:number,message:any, system:boolean} = e;
-		if (event.system)
-			return;
-		this.callRegisterMessages(event.typ, event.message);
+		// init
+		if (event.typ == protocol.MessageScInit.GetType())
+		{
+			let message = event.message as protocol.IScInit;
+			this.idLocalUser = message.idUser;
+		}
+		// join
+		else if (event.typ == protocol.MessageScJoin.GetType())
+		{
+			let message = event.message as protocol.IScJoin;
+			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:message.idUser == this.idLocalUser});
+		}
+		// leave
+		else if (event.typ == protocol.MessageScLeave.GetType())
+		{
+			let message = event.message as protocol.IScLeave;
+			var isLocal = message.idUser == this.idLocalUser;
+			if (isLocal)
+				this.idLocalUser = -1;
+			this.dispatchEvent({type:'userLeave', idUser:message.idUser, isLocal:isLocal});
+		}
+		else
+		{
+			if (event.system)
+				return;
+			this.callRegisterMessages(event.typ, event.message);
+		}
 	}
 
 	private callRegisterMessages(typ:number, message:IMessage)
@@ -59,15 +85,16 @@ export class ClientSystem extends EventDispatcher{
 
 	private getIdMessage(message:ValueOf<typeof TypMessages>)
 	{
-		for (var k in TypMessages)
+		for (var k in this.typMessages)
 		{
-			var m = TypMessages[k as keyof IMessage];
-			if (m  === message)
-				return k;
+			var m:any = this.typMessages[k as keyof IMessage];
+			if (m.GetType()  === message.GetType())
+				return m.GetType();
 		}
 		return -1;
 	}
 
+	//private registerMessage<T extends ValueOf<typeof TypMessages>>(message: T, callback:(arg: T) => void, isTimeEvent:boolean)
 	private registerMessage(message:ValueOf<typeof TypMessages>, callback:CallbackEvent, isTimeEvent:boolean)
 	{
 		var id = this.getIdMessage(message);
@@ -82,6 +109,7 @@ export class ClientSystem extends EventDispatcher{
 		return true;
 	}
 
+	//registerMessageEvent<T extends ValueOf<typeof TypMessages>>(message: T, callback:(arg: T) => void)
 	registerMessageEvent(message:ValueOf<typeof TypMessages>, callback:CallbackEvent)
 	{
 		return this.registerMessage(message, callback, false);
@@ -91,6 +119,12 @@ export class ClientSystem extends EventDispatcher{
 	{
 		return this.registerMessage(message, callback, true);
 	}
+
+	sendMessage(idMessage:number, message:protocol.IMessage)
+	{
+		return this.net.sendMessage(idMessage, message, this.typMessages);
+	}
+
 
 	update(deltaTime:number)
 	{

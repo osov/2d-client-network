@@ -59,7 +59,7 @@ type cs_mouse_angle struct{
 
 type sc_join struct{
 	id_user uint32
-	id uint16
+	id_entity uint16
 }
 
 type sc_leave struct{

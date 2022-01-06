@@ -7,4 +7,4 @@ import { BulletStrategy} from './strategys/BulletStrategy';
 import {TypPack} from './strategys/BaseStrategy';
 import * as utils from './core/utils';
 
-export {DataHelper, protocol, ClientSystem, MessagesHelper, TypPack, TypeInStrategy, InterpolateStrategy, BulletStrategy, utils}
+export {DataHelper, protocol, ClientSystem, MessagesHelper, TypPack, TypeInStrategy, InterpolateStrategy, BulletStrategy, utils};
