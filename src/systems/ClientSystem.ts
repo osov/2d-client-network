@@ -16,11 +16,12 @@ interface CallbackInfo{
 
 export class ClientSystem extends EventDispatcher{
 
+	public idLocalEntity:number = -1;
+	private idLocalUser:number = -1;
 	private net:NetClient;
 	private timeSystem:TimeSystem;
 	private typMessages:typeof TypMessages;
 	private eventCallbacks:{[k:string]:CallbackInfo[]} = {};
-	private idLocalUser:number = -1;
 
 	constructor(url:string, messagesHelper:typeof MessagesHelper, typMessages:typeof TypMessages)
 	{
@@ -36,6 +37,11 @@ export class ClientSystem extends EventDispatcher{
 		this.net.addEventListener('message', this.onMessage.bind(this));
 	}
 
+	isReady()
+	{
+		return this.net.isReady;
+	}
+
 	private onMessage(e:any)
 	{
 		var event:{typ:number,message:any, system:boolean} = e;
@@ -49,6 +55,7 @@ export class ClientSystem extends EventDispatcher{
 		else if (event.typ == protocol.MessageScJoin.GetType())
 		{
 			let message = event.message as protocol.IScJoin;
+			this.idLocalEntity = message.idEntity;
 			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:message.idUser == this.idLocalUser});
 		}
 		// leave
@@ -60,11 +67,21 @@ export class ClientSystem extends EventDispatcher{
 				this.idLocalUser = -1;
 			this.dispatchEvent({type:'userLeave', idUser:message.idUser, isLocal:isLocal});
 		}
+		// world state
+		else if (event.typ == protocol.MessageScWorldStateUpdate.GetType())
+		{
+			let message = event.message as protocol.IScWorldStateUpdate;
+			event.system = true;
+			this.dispatchEvent({type:'worldState', list:message.list});
+		}
 		else
 		{
-			if (event.system)
-				return;
-			this.callRegisterMessages(event.typ, event.message);
+			if (!event.system)
+				this.callRegisterMessages(event.typ, event.message);
+		}
+		if (!event.system){
+			var cl:any = this.typMessages[event.typ as keyof IMessage];
+			console.log('Server ->', cl.GetName(), e.message);
 		}
 	}
 
@@ -124,7 +141,6 @@ export class ClientSystem extends EventDispatcher{
 	{
 		return this.net.sendMessage(idMessage, message, this.typMessages);
 	}
-
 
 	update(deltaTime:number)
 	{

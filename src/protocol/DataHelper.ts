@@ -71,6 +71,16 @@ export class DataHelper {
 	writeFloat32(value: number): void { const index = this.length; this.growBy(4); this.view.setFloat32(index, value, true); }
 	writeFloat64(value: number): void { const index = this.length; this.growBy(8); this.view.setFloat64(index, value, true); }
 
+	writeRawBytes(value: Uint8Array): void {
+		const byteCount = value.length;
+		if (byteCount === 0) {
+			return;
+		}
+		const index = this.length;
+		this.growBy(byteCount);
+		this.buffer.set(value, index);
+	}
+
 	readBytes(): Uint8Array {
 		const length = this.readUint32();
 		if (length === 0) {
@@ -79,16 +89,6 @@ export class DataHelper {
 		const start = this.index, end = start + length;
 		this.index = end;
 		return this.buffer.subarray(start, end);
-	}
-
-	writeBytes(value: Uint8Array): void {
-		const byteCount = value.length;
-		if (byteCount === 0) {
-			return;
-		}
-		const index = this.length;
-		this.growBy(byteCount);
-		this.buffer.set(value, index);
 	}
 
 	writeBytesWithLength(value: Uint8Array): void {

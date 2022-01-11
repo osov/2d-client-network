@@ -13,6 +13,7 @@ export interface InitNetParams{
 export class NetClient extends EventDispatcher{
 
 	private batchInterval = 1/30;
+	private minInterpolate = 50;
 	private maxInterpolate = 500;
 	public interpolateTime:number = 150;
 	private socket:WsClient;
@@ -33,6 +34,7 @@ export class NetClient extends EventDispatcher{
 	private messagesHelper:typeof MessagesHelper;
 	private initParams:InitNetParams;
 	private eventCallbacks:{[k:string]:[]} = {};
+	public isReady:boolean = false;
 	private static instance: NetClient;
 	public static getInstance(): NetClient
 	{
@@ -66,6 +68,7 @@ export class NetClient extends EventDispatcher{
 	{
 		this.messagesHelper.PackCsConnect(this.viewerWriter, {idSession:this.initParams.idSession});
 		this.sendBuffer();
+		this.isReady = true;
 	}
 
 	private onClose()
@@ -89,7 +92,6 @@ export class NetClient extends EventDispatcher{
 
 	private onMessage(typ:number, srcMessage:protocol.IMessage)
 	{
-		//console.log(typ, srcMessage);
 		var isSystem = false;
 		// init
 		if (typ == protocol.MessageScInit.GetType())
@@ -119,7 +121,7 @@ export class NetClient extends EventDispatcher{
 		{
 			isSystem = true;
 			let message = srcMessage as protocol.IScTimestamp;
-			this.lastRecvServerTime = this.startServerTime + message.offsetTime;
+			this.lastRecvServerTime = this.startServerTime + message.offsetTime; // восстанавливаем время которое было на сервере в момент отправки
 		}
 		this.dispatchEvent({type:'message', typ:typ, message:srcMessage, system:isSystem});
 	}
@@ -141,6 +143,10 @@ export class NetClient extends EventDispatcher{
 			if (perc > 30)
 			{
 				this.interpolateTime = calcInterp * 1.2;
+				if (this.interpolateTime > this.maxInterpolate)
+					this.interpolateTime = this.maxInterpolate;
+				if (this.interpolateTime < this.minInterpolate)
+					this.interpolateTime = this.minInterpolate;
 				console.log("Уменьшаем время интерполяции:", Number(old.toFixed(2)), " -> ", Number(this.interpolateTime.toFixed(2)));
 			}
 		}
@@ -150,6 +156,8 @@ export class NetClient extends EventDispatcher{
 			this.interpolateTime = calcInterp * 1.2; // берем 120% от рассчетной
 			if (this.interpolateTime > this.maxInterpolate)
 				this.interpolateTime = this.maxInterpolate;
+			if (this.interpolateTime < this.minInterpolate)
+				this.interpolateTime = this.minInterpolate;
 			console.log("Увеличиваем время интерполяции:", Number(old.toFixed(2)), " -> ", Number(this.interpolateTime.toFixed(2)));
 		}
 	}
@@ -159,6 +167,7 @@ export class NetClient extends EventDispatcher{
 		return Date.now();
 	}
 
+	// время которое было на сервере в момент отправки пакета(самый первый пакет в событии onSocketUpdate и до пакета IScWorldStateUpdate)
 	getLastServerTime()
 	{
 		return this.lastRecvServerTime;
@@ -187,12 +196,12 @@ export class NetClient extends EventDispatcher{
 		if (newRtt < this.bestRtt)
 		{
 			this.bestRtt = newRtt;
-			this.lastRecvServerTime = this.startServerTime + message.offsetTime;
+			this.lastRecvServerTime = this.startServerTime + message.offsetTime; // восстанавливаем время которое было на сервере в момент отправки
 			this.localServerTime = this.lastRecvServerTime + newRtt * 0.5;
 			this.localStartTime = now;
 			//console.log("Best RTT:", this.bestRtt + "/st:"+ this.localServerTime+"/lt:"+ this.localStartTime);
 		}
-		this.updateInterpolateTime();
+		//this.updateInterpolateTime();
 		setTimeout(this.sendPing.bind(this), this.pingFrequency);
 	}
 

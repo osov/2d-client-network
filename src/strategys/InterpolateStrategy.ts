@@ -8,16 +8,25 @@ export enum TypeInStrategy{
 	PosAngleVelCalc
 }
 
+/*
+	проблема при переходе границ, резкий рывок возникает из-за того что происходит смена стратегии при включенной Exp с сервера
+	на обычный lerp потому что между ними возникло большое расхождение
+	для решения этого нужно грамотно подобрать коэф-т expCoef
+	а также рывок возникает из-за различия в скорости для камеры
+*/
+
 export class InterpolateStrategy extends BaseStrategy{
 	public typStrategy:TypeInStrategy = TypeInStrategy.PosAngle;
 	private buffer:IStatePosRot[] = [];
 	private isBlink:boolean;
 	private blinkTime:number;
 	private rate:number = 0.01;
+	private expCoef:number = 136; // коэф-т зависит от системы мира, если пиксели, то х100, иначе обычно 0.136 подходил
 
-	constructor()
+	constructor(typStrategy:TypeInStrategy)
 	{
 		super();
+		this.typStrategy = typStrategy;
 	}
 
 	private getBaseUpdate()
@@ -35,7 +44,7 @@ export class InterpolateStrategy extends BaseStrategy{
 	{
 		super.addData(serverTime, typ, pos, angle, velocity);
 
-		this.buffer.push(this.lastPack);
+		this.buffer.push({...this.lastPack});
 		const base = this.getBaseUpdate();
 		if (base > 0)
 			this.buffer.splice(0, base);
@@ -43,7 +52,7 @@ export class InterpolateStrategy extends BaseStrategy{
 
 	private getExpCoef()
 	{
-		return 0.136;
+		return this.expCoef;
 	}
 
 	getState(deltaTime:number)
@@ -54,6 +63,7 @@ export class InterpolateStrategy extends BaseStrategy{
 		var serverTime = this.currentServerTime();
 		if (base < 0)
 		{
+			//console.warn("Buffer empty");
 			return false;
 		}
 		else if (base == this.buffer.length - 1)
@@ -64,6 +74,7 @@ export class InterpolateStrategy extends BaseStrategy{
 				this.state.position.add(this.state.velocity.clone().multiplyScalar(deltaTime)); // Экстраполяция когда опаздывают обновления; todo для локального игрока в идеале бы и вращение
 			else
 				this.state.position.copy(this.lastPack.position);
+			//console.warn("Buffer old", this.entity.idEntity);
 			return true;
 		}
 		else
@@ -81,8 +92,8 @@ export class InterpolateStrategy extends BaseStrategy{
 				if (is_blink && !this.isBlink)
 				{
 					this.isBlink = true;
-					this.blinkTime = this.net.now() + 0.3;
-					// console.log("Blink..");
+					this.blinkTime = this.net.now() + 300;
+					//console.log("Blink..");
 				}
 			}
 
@@ -117,7 +128,6 @@ export class InterpolateStrategy extends BaseStrategy{
 				var velocity = next.position.clone().sub(last.position).divideScalar(ft);
 				this.state.position.add(velocity.multiplyScalar(this.getExpCoef()));
 			}
-
 
 			return true;
 		}
