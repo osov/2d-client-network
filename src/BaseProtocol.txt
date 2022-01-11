@@ -51,7 +51,6 @@ type sc_remove_e struct{
 	id uint16
 }
 
-
 type cs_input struct{
 	key uint8
 	state uint8

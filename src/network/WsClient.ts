@@ -14,7 +14,7 @@ export class WsClient extends EventDispatcher
 
 	socketOnMessage(message:MessageEvent)
 	{
-		this.dispatchEvent({type:'message', 'data': message.data});
+		this.dispatchEvent({type:'message', data: message.data});
 	}
 
 	send(data:ArrayBufferLike)
@@ -27,7 +27,7 @@ export class WsClient extends EventDispatcher
 
 	socketOnOpen(m:Event)
 	{
-		this.dispatchEvent({type:'open', 'client': this});
+		this.dispatchEvent({type:'open', client: this});
 	}
 
 	socketOnError(m:Event)
@@ -45,14 +45,13 @@ export class WsClient extends EventDispatcher
 	{
 		if (this.stopped)
 			return;
-		this.dispatchEvent({type:'close', 'client':this});
-		if (this.socketTimer !=0 )
+		this.dispatchEvent({type:'close', client:this});
+		if (this.socketTimer != 0)
 		{
 			clearTimeout(this.socketTimer);
 			this.socketTimer = 0;
 		}
-		var _this = this;
-		this.socketTimer = setTimeout(_this.connect, 3000) as any as number;
+		this.socketTimer = setTimeout(this.connect.bind(this), 3000) as any as number;
 		console.warn("Socket disconnect...");
 	}
 

@@ -72,3 +72,18 @@ export function copyBuffer(buffer:Uint8Array)
 {
 	return buffer.slice(0);
 }
+
+export function getCookie(name:string)
+{
+	const value = `; ${document.cookie}`;
+	const parts = value.split(`; ${name}=`);
+	if (parts.length === 2)
+	{
+		var p = parts.pop();
+		if (p !== undefined)
+			return p.split(';').shift() + '';
+		else
+			return '';
+	}
+	return '';
+}

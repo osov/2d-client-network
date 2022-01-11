@@ -64,7 +64,7 @@ export class ClientSystem extends EventDispatcher{
 			let message = event.message as protocol.IScLeave;
 			var isLocal = message.idUser == this.idLocalUser;
 			if (isLocal)
-				this.idLocalUser = -1;
+				this.idLocalEntity = -1;
 			this.dispatchEvent({type:'userLeave', idUser:message.idUser, isLocal:isLocal});
 		}
 		// world state
@@ -79,7 +79,7 @@ export class ClientSystem extends EventDispatcher{
 			if (!event.system)
 				this.callRegisterMessages(event.typ, event.message);
 		}
-		if (!event.system){
+		if (!event.system || !true){
 			var cl:any = this.typMessages[event.typ as keyof IMessage];
 			console.log('Server ->', cl.GetName(), e.message);
 		}
