@@ -1,5 +1,5 @@
 import {Vector2} from 'three';
-import {BaseComponent} from 'ecs-threejs';
+import {BaseComponent, BaseEntity} from 'ecs-threejs';
 import {NetClient} from '../network/NetClient';
 
 export interface IStatePosRot{
@@ -16,8 +16,8 @@ export enum TypPack{
 
 export class BaseStrategy extends BaseComponent{
 
-	public worldSize:Vector2 = new Vector2(); // todo
-	public worldWrap:boolean = true; // todo
+	protected worldSize:Vector2 = new Vector2();
+	protected worldWrap:boolean = true;
 	protected net:NetClient;
 	protected addedServerTime:number;
 	protected startPos:Vector2;
@@ -33,9 +33,12 @@ export class BaseStrategy extends BaseComponent{
 		this.net = NetClient.getInstance();
 	}
 
-	onAdded(e:any)
+
+	onAddedComponent(e:BaseEntity)
 	{
-		super.onAdded(e);
+		super.onAddedComponent(e);
+		this.worldSize = e.wrapConfig.worldSize;
+		this.worldWrap = e.wrapConfig.worldWrap;
 		this.addedServerTime = this.net.getLastServerTime();
 		var pos = this.entity.getPosition();
 		this.startPos = new Vector2(pos.x, pos.y);

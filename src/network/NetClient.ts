@@ -178,6 +178,11 @@ export class NetClient extends EventDispatcher{
 		return (this.localServerTime + this.now() - this.localStartTime);
 	}
 
+	offsetToServerTime(offsetTime:number)
+	{
+		return this.startServerTime + offsetTime;
+	}
+
 	private sendPing()
 	{
 		this.messagesHelper.PackCsPing(this.viewerWriter, {clientTime:BigInt(this.now())});

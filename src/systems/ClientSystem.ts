@@ -50,6 +50,7 @@ export class ClientSystem extends EventDispatcher{
 		{
 			let message = event.message as protocol.IScInit;
 			this.idLocalUser = message.idUser;
+			event.system = true;
 		}
 		// join
 		else if (event.typ == protocol.MessageScJoin.GetType())
@@ -58,6 +59,7 @@ export class ClientSystem extends EventDispatcher{
 			const isLocal = message.idUser == this.idLocalUser;
 			if (isLocal)
 				this.idLocalEntity = message.idEntity;
+			event.system = true;
 			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:isLocal});
 		}
 		// leave
@@ -67,6 +69,7 @@ export class ClientSystem extends EventDispatcher{
 			var isLocal = message.idUser == this.idLocalUser;
 			if (isLocal)
 				this.idLocalEntity = -1;
+			event.system = true;
 			this.dispatchEvent({type:'userLeave', idUser:message.idUser, isLocal:isLocal});
 		}
 		// world state
@@ -89,7 +92,7 @@ export class ClientSystem extends EventDispatcher{
 		}
 		if (!event.system || !true){
 			var cl:any = this.typMessages[event.typ as keyof IMessage];
-			console.log('Server ->', cl.GetName(), e.message);
+			//console.log('Server ->', cl.GetName(), e.message);
 		}
 	}
 

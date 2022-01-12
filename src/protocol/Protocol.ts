@@ -816,7 +816,8 @@ export interface IEntityBullet extends IMessage{
 	readonly id : number;
 	readonly position : IVector2Int16;
 	readonly velocity : IVector2Uint8;
-	readonly angle : number;	
+	readonly angle : number;
+	readonly offsetTime : number;	
 }
 
 export const MessageEntityBullet = {
@@ -843,6 +844,10 @@ export const MessageEntityBullet = {
 			throw new Error('protogen: protocol.EntityBullet.angle out of reach: '+ message.angle);
 		view.writeByte(message.angle);
 
+		if (message.offsetTime > 4294967295 || message.offsetTime < 0)
+			throw new Error('protogen: protocol.EntityBullet.offset_time out of reach: '+ message.offsetTime);
+		view.writeUint32(message.offsetTime);
+
 		const after = view.length;
 		return after - before;
 	},
@@ -857,11 +862,14 @@ export const MessageEntityBullet = {
 
 		var prop_angle = view.readByte();
 
+		var prop_offsetTime = view.readUint32();
+
 		var message:IEntityBullet = {
 				id : prop_id,
 				position : prop_position,
 				velocity : prop_velocity,
 				angle : prop_angle,
+				offsetTime : prop_offsetTime,
 		};
 		return message;
 	},

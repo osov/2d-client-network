@@ -43,8 +43,16 @@ export function toRange(value:number, type:string, min:number, max:number, decod
 	}
 	if (!decode)
 	{
+		if (value > max)
+		{
+			console.warn('Больше максиума:',value, max);
+			value = max;
+		}
 		if (value < min)
-			value *= -1;
+		{
+			console.warn('Меньше минимума:',value, min);
+			value = min;
+		}
 		value = Math.round(convertRange(value, min, max, range2[0], range2[1], decode));
 	}
 	else
@@ -54,7 +62,21 @@ export function toRange(value:number, type:string, min:number, max:number, decod
 	return value;
 }
 
-export function toRangeVec2(value:Vector2, type:string, min:number, max:number, decode = false)
+export function toRangeVec2(value:Vector2, type:string, min:number, max:number, decode = false, accuracy:number = 0)
 {
-	return new Vector2(toRange(value.x, type, min, max, decode), toRange(value.y, type, min, max,  decode));
+	var vec = new Vector2(toRange(value.x, type, min, max, decode), toRange(value.y, type, min, max,  decode));
+	if (decode && accuracy > 0)
+		return toAccuracyVec2(vec, accuracy);
+	else
+		return vec;
+}
+
+// очень важно привести к нужной точности, иначе например если передали Vec2 со значением 0,0.5 и получили например(uint8[-0.5,0.5]) 128,255 
+// то после преобразования х будет близок к нулю, но не ноль и соответственно будет расти ошибка, поэтому важно преобразовать к точности.
+export function toAccuracyVec2(vec2:Vector2, count:number)
+{
+	const mul = Math.pow(10, count);
+	vec2.x = Math.round(vec2.x * mul) / mul;
+	vec2.y = Math.round(vec2.y * mul) / mul;
+	return vec2;
 }

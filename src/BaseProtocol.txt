@@ -80,4 +80,5 @@ type EntityBullet struct{
 	position Vector2Int16
 	velocity Vector2Uint8
 	angle uint8
+	offset_time uint32
 }
