@@ -519,7 +519,7 @@ export const MessageScWorldStateUpdate = {
 
 
 export interface IScRemoveE extends IMessage{
-	readonly id : number;	
+	readonly idEntity : number;	
 }
 
 export const MessageScRemoveE = {
@@ -534,9 +534,9 @@ export const MessageScRemoveE = {
 		var a;
 		const before = view.length;
 
-		if (message.id > 65535 || message.id < 0)
-			throw new Error('protogen: protocol.sc_remove_e.id out of reach: '+ message.id);
-		view.writeUint16(message.id);
+		if (message.idEntity > 65535 || message.idEntity < 0)
+			throw new Error('protogen: protocol.sc_remove_e.id_entity out of reach: '+ message.idEntity);
+		view.writeUint16(message.idEntity);
 
 		const after = view.length;
 		return after - before;
@@ -544,10 +544,10 @@ export const MessageScRemoveE = {
 
 	UnPackMessage(view:DataHelper): IScRemoveE {
 
-		var prop_id = view.readUint16();
+		var prop_idEntity = view.readUint16();
 
 		var message:IScRemoveE = {
-				id : prop_id,
+				idEntity : prop_idEntity,
 		};
 		return message;
 	},

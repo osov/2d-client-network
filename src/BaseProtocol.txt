@@ -48,7 +48,7 @@ type sc_world_state_update struct{
 }
 
 type sc_remove_e struct{
-	id uint16
+	id_entity uint16
 }
 
 type cs_input struct{

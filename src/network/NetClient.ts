@@ -1,7 +1,7 @@
 import {EventDispatcher} from 'three';
 import {WsClient} from './WsClient';
 import {DataHelper} from '../protocol/DataHelper';
-import {MessagesHelper, TypMessages} from '../protocol/Protocol';
+import  {MessagesHelper, TypMessages} from '../protocol/Protocol';
 import * as protocol from '../protocol/Protocol';
 
 import {ExponentialMovingAverage} from '../core/ExponentialMovingAverage';
@@ -132,7 +132,7 @@ export class NetClient extends EventDispatcher{
 		if (now < this.lastInterpolateTime + 500)
 			return;
 		this.lastInterpolateTime = now;
-		var maxOffsetServer = (this.batchInterval + 1 / 60) * 1.5;
+		var maxOffsetServer = (this.batchInterval + 1 / 60) * 1.5 * 1000;
 		var calcInterp = Math.max(maxOffsetServer, this.rtt.get());
 		var old = this.interpolateTime;
 		// интерполяция сейчас успевает обрабатывать пакеты

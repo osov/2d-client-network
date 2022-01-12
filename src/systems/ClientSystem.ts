@@ -55,8 +55,10 @@ export class ClientSystem extends EventDispatcher{
 		else if (event.typ == protocol.MessageScJoin.GetType())
 		{
 			let message = event.message as protocol.IScJoin;
-			this.idLocalEntity = message.idEntity;
-			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:message.idUser == this.idLocalUser});
+			const isLocal = message.idUser == this.idLocalUser;
+			if (isLocal)
+				this.idLocalEntity = message.idEntity;
+			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:isLocal});
 		}
 		// leave
 		else if (event.typ == protocol.MessageScLeave.GetType())
@@ -76,6 +78,12 @@ export class ClientSystem extends EventDispatcher{
 		}
 		else
 		{
+			if (event.typ == protocol.MessageScRemoveE.GetType())
+			{
+				let message = event.message as protocol.IScRemoveE;
+				if (message.idEntity == this.idLocalEntity)
+					this.idLocalEntity = -1;
+			}
 			if (!event.system)
 				this.callRegisterMessages(event.typ, event.message);
 		}
