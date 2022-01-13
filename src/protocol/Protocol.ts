@@ -298,58 +298,6 @@ export const MessageScInit = {
 }
 
 
-export interface IVector2Int16 extends IMessage{
-	readonly x : number;
-	readonly y : number;	
-}
-
-export const MessageVector2Int16 = {
-
-	Pack(view:DataHelper, message:IVector2Int16): number {
-		view.writeByte(MessageVector2Int16.GetType());
-		var len = this.PackMessage(message, view);
-		return 1 + len;
-	},
-
-	PackMessage(message:IVector2Int16, view:DataHelper):number {
-		var a;
-		const before = view.length;
-
-		if (message.x < -32768  || message.x > 32767)
-			throw new Error('protogen: protocol.Vector2Int16.x exceeds 16-bit range: '+ message.x);
-		view.writeInt16(message.x);
-
-		if (message.y < -32768  || message.y > 32767)
-			throw new Error('protogen: protocol.Vector2Int16.y exceeds 16-bit range: '+ message.y);
-		view.writeInt16(message.y);
-
-		const after = view.length;
-		return after - before;
-	},
-
-	UnPackMessage(view:DataHelper): IVector2Int16 {
-
-		var prop_x = view.readInt16();
-
-		var prop_y = view.readInt16();
-
-		var message:IVector2Int16 = {
-				x : prop_x,
-				y : prop_y,
-		};
-		return message;
-	},
-
-	GetType(){
-		return 6;
-	},
-
-	GetName(){
-		return 'IVector2Int16';
-	}
-}
-
-
 export interface IVector2Uint8 extends IMessage{
 	readonly x : number;
 	readonly y : number;	
@@ -393,11 +341,115 @@ export const MessageVector2Uint8 = {
 	},
 
 	GetType(){
-		return 7;
+		return 6;
 	},
 
 	GetName(){
 		return 'IVector2Uint8';
+	}
+}
+
+
+export interface IVector2Uint16 extends IMessage{
+	readonly x : number;
+	readonly y : number;	
+}
+
+export const MessageVector2Uint16 = {
+
+	Pack(view:DataHelper, message:IVector2Uint16): number {
+		view.writeByte(MessageVector2Uint16.GetType());
+		var len = this.PackMessage(message, view);
+		return 1 + len;
+	},
+
+	PackMessage(message:IVector2Uint16, view:DataHelper):number {
+		var a;
+		const before = view.length;
+
+		if (message.x > 65535 || message.x < 0)
+			throw new Error('protogen: protocol.Vector2Uint16.x out of reach: '+ message.x);
+		view.writeUint16(message.x);
+
+		if (message.y > 65535 || message.y < 0)
+			throw new Error('protogen: protocol.Vector2Uint16.y out of reach: '+ message.y);
+		view.writeUint16(message.y);
+
+		const after = view.length;
+		return after - before;
+	},
+
+	UnPackMessage(view:DataHelper): IVector2Uint16 {
+
+		var prop_x = view.readUint16();
+
+		var prop_y = view.readUint16();
+
+		var message:IVector2Uint16 = {
+				x : prop_x,
+				y : prop_y,
+		};
+		return message;
+	},
+
+	GetType(){
+		return 7;
+	},
+
+	GetName(){
+		return 'IVector2Uint16';
+	}
+}
+
+
+export interface IVector2Int16 extends IMessage{
+	readonly x : number;
+	readonly y : number;	
+}
+
+export const MessageVector2Int16 = {
+
+	Pack(view:DataHelper, message:IVector2Int16): number {
+		view.writeByte(MessageVector2Int16.GetType());
+		var len = this.PackMessage(message, view);
+		return 1 + len;
+	},
+
+	PackMessage(message:IVector2Int16, view:DataHelper):number {
+		var a;
+		const before = view.length;
+
+		if (message.x < -32768  || message.x > 32767)
+			throw new Error('protogen: protocol.Vector2Int16.x exceeds 16-bit range: '+ message.x);
+		view.writeInt16(message.x);
+
+		if (message.y < -32768  || message.y > 32767)
+			throw new Error('protogen: protocol.Vector2Int16.y exceeds 16-bit range: '+ message.y);
+		view.writeInt16(message.y);
+
+		const after = view.length;
+		return after - before;
+	},
+
+	UnPackMessage(view:DataHelper): IVector2Int16 {
+
+		var prop_x = view.readInt16();
+
+		var prop_y = view.readInt16();
+
+		var message:IVector2Int16 = {
+				x : prop_x,
+				y : prop_y,
+		};
+		return message;
+	},
+
+	GetType(){
+		return 8;
+	},
+
+	GetName(){
+		return 'IVector2Int16';
 	}
 }
 
@@ -457,7 +509,7 @@ export const MessageEntityInfo = {
 	},
 
 	GetType(){
-		return 8;
+		return 9;
 	},
 
 	GetName(){
@@ -509,7 +561,7 @@ export const MessageScWorldStateUpdate = {
 	},
 
 	GetType(){
-		return 9;
+		return 10;
 	},
 
 	GetName(){
@@ -553,7 +605,7 @@ export const MessageScRemoveE = {
 	},
 
 	GetType(){
-		return 10;
+		return 11;
 	},
 
 	GetName(){
@@ -605,7 +657,7 @@ export const MessageCsInput = {
 	},
 
 	GetType(){
-		return 11;
+		return 12;
 	},
 
 	GetName(){
@@ -649,7 +701,7 @@ export const MessageCsMouseAngle = {
 	},
 
 	GetType(){
-		return 12;
+		return 13;
 	},
 
 	GetName(){
@@ -701,7 +753,7 @@ export const MessageScJoin = {
 	},
 
 	GetType(){
-		return 13;
+		return 14;
 	},
 
 	GetName(){
@@ -753,7 +805,7 @@ export const MessageScLeave = {
 	},
 
 	GetType(){
-		return 14;
+		return 15;
 	},
 
 	GetName(){
@@ -803,7 +855,7 @@ export const MessageEntityBase = {
 	},
 
 	GetType(){
-		return 15;
+		return 16;
 	},
 
 	GetName(){
@@ -815,7 +867,7 @@ export const MessageEntityBase = {
 export interface IEntityBullet extends IMessage{
 	readonly id : number;
 	readonly position : IVector2Int16;
-	readonly velocity : IVector2Uint8;
+	readonly velocity : IVector2Uint16;
 	readonly angle : number;
 	readonly offsetTime : number;	
 }
@@ -838,7 +890,7 @@ export const MessageEntityBullet = {
 
 		MessageVector2Int16.PackMessage(message.position, view);
 
-		MessageVector2Uint8.PackMessage(message.velocity, view);
+		MessageVector2Uint16.PackMessage(message.velocity, view);
 
 		if (message.angle > 255 || message.angle < 0)
 			throw new Error('protogen: protocol.EntityBullet.angle out of reach: '+ message.angle);
@@ -858,7 +910,7 @@ export const MessageEntityBullet = {
 
 		var prop_position = MessageVector2Int16.UnPackMessage(view);
 
-		var prop_velocity = MessageVector2Uint8.UnPackMessage(view);
+		var prop_velocity = MessageVector2Uint16.UnPackMessage(view);
 
 		var prop_angle = view.readByte();
 
@@ -875,7 +927,7 @@ export const MessageEntityBullet = {
 	},
 
 	GetType(){
-		return 16;
+		return 17;
 	},
 
 	GetName(){
@@ -892,17 +944,18 @@ export const TypMessages = {
 	3: MessageScPong,
 	4: MessageScTimestamp,
 	5: MessageScInit,
-	6: MessageVector2Int16,
-	7: MessageVector2Uint8,
-	8: MessageEntityInfo,
-	9: MessageScWorldStateUpdate,
-	10: MessageScRemoveE,
-	11: MessageCsInput,
-	12: MessageCsMouseAngle,
-	13: MessageScJoin,
-	14: MessageScLeave,
-	15: MessageEntityBase,
-	16: MessageEntityBullet,
+	6: MessageVector2Uint8,
+	7: MessageVector2Uint16,
+	8: MessageVector2Int16,
+	9: MessageEntityInfo,
+	10: MessageScWorldStateUpdate,
+	11: MessageScRemoveE,
+	12: MessageCsInput,
+	13: MessageCsMouseAngle,
+	14: MessageScJoin,
+	15: MessageScLeave,
+	16: MessageEntityBase,
+	17: MessageEntityBullet,
 }
 
 export const IdMessages = {
@@ -912,17 +965,18 @@ export const IdMessages = {
 	IScPong:3,
 	IScTimestamp:4,
 	IScInit:5,
-	IVector2Int16:6,
-	IVector2Uint8:7,
-	IEntityInfo:8,
-	IScWorldStateUpdate:9,
-	IScRemoveE:10,
-	ICsInput:11,
-	ICsMouseAngle:12,
-	IScJoin:13,
-	IScLeave:14,
-	IEntityBase:15,
-	IEntityBullet:16,
+	IVector2Uint8:6,
+	IVector2Uint16:7,
+	IVector2Int16:8,
+	IEntityInfo:9,
+	IScWorldStateUpdate:10,
+	IScRemoveE:11,
+	ICsInput:12,
+	ICsMouseAngle:13,
+	IScJoin:14,
+	IScLeave:15,
+	IEntityBase:16,
+	IEntityBullet:17,
 }
 
 export const MessagesHelper = {
@@ -950,12 +1004,16 @@ export const MessagesHelper = {
 		return MessageScInit.Pack(view, message);
 	},
 
-	PackVector2Int16(view:DataHelper, message:IVector2Int16): number{
-		return MessageVector2Int16.Pack(view, message);
-	},
-
 	PackVector2Uint8(view:DataHelper, message:IVector2Uint8): number{
 		return MessageVector2Uint8.Pack(view, message);
+	},
+
+	PackVector2Uint16(view:DataHelper, message:IVector2Uint16): number{
+		return MessageVector2Uint16.Pack(view, message);
+	},
+
+	PackVector2Int16(view:DataHelper, message:IVector2Int16): number{
+		return MessageVector2Int16.Pack(view, message);
 	},
 
 	PackEntityInfo(view:DataHelper, message:IEntityInfo): number{

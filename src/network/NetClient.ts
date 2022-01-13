@@ -1,7 +1,8 @@
 import {EventDispatcher} from 'three';
 import {WsClient} from './WsClient';
 import {DataHelper} from '../protocol/DataHelper';
-import  {MessagesHelper, TypMessages} from '../protocol/Protocol';
+import  {MessagesHelper} from '../protocol/Protocol';
+import  {MessagesPackerList} from '../protocol/TypesHelper';
 import * as protocol from '../protocol/Protocol';
 
 import {ExponentialMovingAverage} from '../core/ExponentialMovingAverage';
@@ -20,8 +21,6 @@ export class NetClient extends EventDispatcher{
 	private url:string;
 	private localServerTime:number = 0;
 	private localStartTime:number = 0;
-	private lastPing:number = 1E10;
-	private bestPing:number = 1E10;
 	private cntPong:number = 0;
 	private pingFrequency:number = 200;
 	private bestRtt:number = 1E10;
@@ -33,16 +32,15 @@ export class NetClient extends EventDispatcher{
 	private viewerWriter:DataHelper;
 	private messagesHelper:typeof MessagesHelper;
 	private initParams:InitNetParams;
-	private eventCallbacks:{[k:string]:[]} = {};
 	public isReady:boolean = false;
 	private static instance: NetClient;
+
 	public static getInstance(): NetClient
 	{
 		if (!NetClient.instance)
 			console.error("Клиент не создан !");
 		return NetClient.instance;
 	}
-
 
 	constructor(url:string, messagesHelper:typeof MessagesHelper)
 	{
@@ -94,7 +92,7 @@ export class NetClient extends EventDispatcher{
 	{
 		var isSystem = false;
 		// init
-		if (typ == protocol.MessageScInit.GetType())
+		if (typ == protocol.IdMessages.IScInit)
 		{
 			isSystem = true;
 			let message = srcMessage as protocol.IScInit;
@@ -103,7 +101,7 @@ export class NetClient extends EventDispatcher{
 			console.log("Подключение успешно");
 		}
 		// close
-		else if (typ == protocol.MessageScClose.GetType())
+		else if (typ == protocol.IdMessages.IScClose)
 		{
 			isSystem = true;
 			this.socket.stop();
@@ -111,13 +109,13 @@ export class NetClient extends EventDispatcher{
 			this.dispatchEvent({type:"onEnd"});
 		}
 		// pong
-		else if (typ == protocol.MessageScPong.GetType())
+		else if (typ == protocol.IdMessages.IScPong)
 		{
 			isSystem = true;
 			this.onPong(srcMessage as protocol.IScPong)
 		}
 		// timestamp
-		else if (typ == protocol.MessageScTimestamp.GetType())
+		else if (typ == protocol.IdMessages.IScTimestamp)
 		{
 			isSystem = true;
 			let message = srcMessage as protocol.IScTimestamp;
@@ -210,9 +208,11 @@ export class NetClient extends EventDispatcher{
 		setTimeout(this.sendPing.bind(this), this.pingFrequency);
 	}
 
-	sendMessage(idMessage:number, message:protocol.IMessage, typMessages:typeof TypMessages)
+	sendMessage(idMessage:number, message:protocol.IMessage, typMessages:MessagesPackerList)
 	{
-		var messagePacker:any = typMessages[idMessage as keyof protocol.IMessage];
+		const messagePacker = typMessages[idMessage ];
+		if (messagePacker === undefined)
+			return console.error("Упаковщик не найден для сообщения:", idMessage);
 		messagePacker.Pack(this.viewerWriter, message);
 		return this.sendBuffer();
 	}

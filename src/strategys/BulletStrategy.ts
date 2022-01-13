@@ -1,4 +1,3 @@
-import {Vector2} from 'three';
 import {BaseStrategy} from './BaseStrategy';
 import {vectorToRange} from '../core/utils';
 

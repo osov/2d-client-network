@@ -1,7 +1,8 @@
 import {EventDispatcher} from 'three';
 import {NetClient, InitNetParams} from '../network/NetClient';
-import {MessagesHelper, IMessage, TypMessages} from '../protocol/Protocol';
+import {IMessage} from '../protocol/Protocol';
 import * as protocol from '../protocol/Protocol';
+import {MessagesPackerList, ProtocolInfo} from '../protocol/TypesHelper';
 import {TimeSystem} from './TimeSystem';
 
 type ValueOf<T> = T[keyof T];
@@ -20,15 +21,15 @@ export class ClientSystem extends EventDispatcher{
 	private idLocalUser:number = -1;
 	private net:NetClient;
 	private timeSystem:TimeSystem;
-	private typMessages:typeof TypMessages;
+	private typMessages:MessagesPackerList;
 	private eventCallbacks:{[k:string]:CallbackInfo[]} = {};
 
-	constructor(url:string, messagesHelper:typeof MessagesHelper, typMessages:typeof TypMessages)
+	constructor(url:string, protocolInfo:ProtocolInfo)
 	{
 		super();
-		this.net = new NetClient(url, messagesHelper);
+		this.net = new NetClient(url, protocolInfo.MessagesHelper);
 		this.timeSystem = new TimeSystem();
-		this.typMessages = typMessages;
+		this.typMessages = protocolInfo.TypMessages;
 	}
 
 	init(params:InitNetParams)
@@ -46,14 +47,14 @@ export class ClientSystem extends EventDispatcher{
 	{
 		var event:{typ:number,message:any, system:boolean} = e;
 		// init
-		if (event.typ == protocol.MessageScInit.GetType())
+		if (event.typ == protocol.IdMessages.IScInit)
 		{
 			let message = event.message as protocol.IScInit;
 			this.idLocalUser = message.idUser;
 			event.system = true;
 		}
 		// join
-		else if (event.typ == protocol.MessageScJoin.GetType())
+		else if (event.typ == protocol.IdMessages.IScJoin)
 		{
 			let message = event.message as protocol.IScJoin;
 			const isLocal = message.idUser == this.idLocalUser;
@@ -63,7 +64,7 @@ export class ClientSystem extends EventDispatcher{
 			this.dispatchEvent({type:'userJoin', idUser:message.idUser, idEntity:message.idEntity, isLocal:isLocal});
 		}
 		// leave
-		else if (event.typ == protocol.MessageScLeave.GetType())
+		else if (event.typ == protocol.IdMessages.IScLeave)
 		{
 			let message = event.message as protocol.IScLeave;
 			var isLocal = message.idUser == this.idLocalUser;
@@ -73,7 +74,7 @@ export class ClientSystem extends EventDispatcher{
 			this.dispatchEvent({type:'userLeave', idUser:message.idUser, isLocal:isLocal});
 		}
 		// world state
-		else if (event.typ == protocol.MessageScWorldStateUpdate.GetType())
+		else if (event.typ == protocol.IdMessages.IScWorldStateUpdate)
 		{
 			let message = event.message as protocol.IScWorldStateUpdate;
 			event.system = true;
@@ -81,7 +82,7 @@ export class ClientSystem extends EventDispatcher{
 		}
 		else
 		{
-			if (event.typ == protocol.MessageScRemoveE.GetType())
+			if (event.typ == protocol.IdMessages.IScRemoveE)
 			{
 				let message = event.message as protocol.IScRemoveE;
 				if (message.idEntity == this.idLocalEntity)
@@ -111,19 +112,13 @@ export class ClientSystem extends EventDispatcher{
 		}
 	}
 
-	private getIdMessage(message:ValueOf<typeof TypMessages>)
+	private getIdMessage(message:ValueOf<MessagesPackerList>)
 	{
-		for (var k in this.typMessages)
-		{
-			var m:any = this.typMessages[k as keyof IMessage];
-			if (m.GetType()  === message.GetType())
-				return m.GetType();
-		}
-		return -1;
+		const id = this.typMessages[message.GetType() as keyof protocol.IMessage];
+		return (id === undefined) ? -1 : message.GetType();
 	}
 
-	//private registerMessage<T extends ValueOf<typeof TypMessages>>(message: T, callback:(arg: T) => void, isTimeEvent:boolean)
-	private registerMessage(message:ValueOf<typeof TypMessages>, callback:CallbackEvent, isTimeEvent:boolean)
+	private registerMessage(message:ValueOf<MessagesPackerList>, callback:CallbackEvent, isTimeEvent:boolean)
 	{
 		var id = this.getIdMessage(message);
 		if (id == -1)
@@ -137,13 +132,13 @@ export class ClientSystem extends EventDispatcher{
 		return true;
 	}
 
-	//registerMessageEvent<T extends ValueOf<typeof TypMessages>>(message: T, callback:(arg: T) => void)
-	registerMessageEvent(message:ValueOf<typeof TypMessages>, callback:CallbackEvent)
+	registerMessageEvent(message:ValueOf<MessagesPackerList>, callback:CallbackEvent)
 	{
 		return this.registerMessage(message, callback, false);
 	}
 
-	registerTimeMessageEvent(message:ValueOf<typeof TypMessages>, callback:CallbackEvent)
+	//registerTimeMessageEvent<T extends ValueOf<MessagesPackerList>>(message: T, callback:(arg: T) => void)
+	registerTimeMessageEvent(message:ValueOf<MessagesPackerList>, callback:CallbackEvent)
 	{
 		return this.registerMessage(message, callback, true);
 	}

@@ -26,14 +26,19 @@ type sc_init struct{
 	data text
 }
 
-type Vector2Int16 struct{
-	x int16
-	y int16
-}
-
 type Vector2Uint8 struct{
 	x uint8
 	y uint8
+}
+
+type Vector2Uint16 struct{
+	x uint16
+	y uint16
+}
+
+type Vector2Int16 struct{
+	x int16
+	y int16
 }
 
 type EntityInfo struct{
@@ -78,7 +83,7 @@ type EntityBase struct{
 type EntityBullet struct{
 	id uint16
 	position Vector2Int16
-	velocity Vector2Uint8
+	velocity Vector2Uint16
 	angle uint8
 	offset_time uint32
 }
