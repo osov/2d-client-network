@@ -48,7 +48,8 @@ export class DataHelper {
 	}
 
 	toArray(): Uint8Array {
-		return this.buffer.subarray(0, this.length);
+		 // просто subarray вернет новый массив, но с указателем на старые элементы
+		return this.buffer.subarray(0, this.length).slice(0);  // соответственно при изменении его, будет меняться исходный, т.е. по факту не копия старого.
 	}
 
 	readByte():    number { return this.buffer[this.index++]; }
