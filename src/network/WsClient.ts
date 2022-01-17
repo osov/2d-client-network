@@ -1,6 +1,6 @@
-import {EventDispatcher} from 'three';
+import { BaseSystem } from 'ecs-threejs';
 
-export class WsClient extends EventDispatcher
+export class WsClient extends BaseSystem
 {
 	private socketTimer = 0;
 	private stopped = false;

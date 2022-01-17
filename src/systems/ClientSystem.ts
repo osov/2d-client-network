@@ -1,4 +1,4 @@
-import {EventDispatcher} from 'three';
+import {BaseSystem} from 'ecs-threejs';
 import {NetClient, InitNetParams} from '../network/NetClient';
 import {IMessage} from '../protocol/Protocol';
 import * as protocol from '../protocol/Protocol';
@@ -14,8 +14,7 @@ interface CallbackInfo{
 	isTimeEvent:boolean;
 }
 
-
-export class ClientSystem extends EventDispatcher{
+export class ClientSystem extends BaseSystem{
 
 	public idLocalEntity:number = -1;
 	private idLocalUser:number = -1;

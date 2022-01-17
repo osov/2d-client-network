@@ -1,4 +1,4 @@
-import {EventDispatcher} from 'three';
+import {BaseSystem} from 'ecs-threejs';
 import {NetClient} from '../network/NetClient';
 
 type CallbackTime = (data:any, offset:number) => void;
@@ -10,7 +10,7 @@ interface CallbackInfo{
 	isLocal:boolean;
 }
 
-export class TimeSystem extends EventDispatcher{
+export class TimeSystem extends BaseSystem{
 
 	private events:CallbackInfo[] = [];
 	private net:NetClient;

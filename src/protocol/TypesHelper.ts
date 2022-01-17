@@ -1,8 +1,9 @@
 import {DataHelper} from './DataHelper';
-import {IMessage, MessagesHelper, TypMessages} from './Protocol'
+import {IMessage, MessagesHelper, TypMessages} from './Protocol';
+
 interface MessagesPacker{
 	Pack(view:DataHelper, message:IMessage):void
-    GetType():number;
+	GetType():number;
 }
 
 

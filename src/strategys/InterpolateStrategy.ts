@@ -1,5 +1,5 @@
 import {Vector2} from 'three';
-import {BaseStrategy, TypPack, IStatePosRot} from './BaseStrategy';
+import {BaseStrategy, TypPack, IStateEntity} from './BaseStrategy';
 import {interpolateWithWrapping, interpolateVectorWithWrap} from '../core/utils';
 
 export enum TypeInStrategy{
@@ -17,7 +17,7 @@ export enum TypeInStrategy{
 
 export class InterpolateStrategy extends BaseStrategy{
 	public typStrategy:TypeInStrategy = TypeInStrategy.PosAngle;
-	private buffer:IStatePosRot[] = [];
+	private buffer:IStateEntity[] = [];
 	private isBlink:boolean;
 	private blinkTime:number;
 	private rate:number = 0.01;

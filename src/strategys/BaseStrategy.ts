@@ -2,7 +2,7 @@ import {Vector2} from 'three';
 import {BaseComponent, BaseEntity} from 'ecs-threejs';
 import {NetClient} from '../network/NetClient';
 
-export interface IStatePosRot{
+export interface IStateEntity{
 	position:Vector2;
 	velocity:Vector2;
 	angle:number;
@@ -23,8 +23,8 @@ export class BaseStrategy extends BaseComponent{
 	protected startPos:Vector2;
 	protected lastPackTime:number;
 	protected lastPackTyp:TypPack;
-	protected lastPack:IStatePosRot = {position:new Vector2(), velocity:new Vector2(), angle:0, serverTime:0};
-	protected state:IStatePosRot = {position:new Vector2(), velocity:new Vector2(), angle:0, serverTime:0};
+	protected lastPack:IStateEntity = {position:new Vector2(), velocity:new Vector2(), angle:0, serverTime:0};
+	protected state:IStateEntity = {position:new Vector2(), velocity:new Vector2(), angle:0, serverTime:0};
 	private firstPack:boolean = true;
 
 	constructor()
@@ -32,7 +32,6 @@ export class BaseStrategy extends BaseComponent{
 		super();
 		this.net = NetClient.getInstance();
 	}
-
 
 	onAddedComponent(e:BaseEntity)
 	{

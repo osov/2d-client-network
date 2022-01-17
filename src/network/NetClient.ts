@@ -1,4 +1,3 @@
-import {EventDispatcher} from 'three';
 import {WsClient} from './WsClient';
 import {DataHelper} from '../protocol/DataHelper';
 import  {MessagesHelper} from '../protocol/Protocol';
@@ -6,12 +5,13 @@ import  {MessagesPackerList} from '../protocol/TypesHelper';
 import * as protocol from '../protocol/Protocol';
 
 import {ExponentialMovingAverage} from '../core/ExponentialMovingAverage';
+import { BaseSystem } from 'ecs-threejs';
 
 export interface InitNetParams{
 	idSession:string;
 }
 
-export class NetClient extends EventDispatcher{
+export class NetClient extends BaseSystem{
 
 	private batchInterval = 1/30;
 	private minInterpolate = 50;
