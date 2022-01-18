@@ -38,7 +38,7 @@ export class NetClient extends BaseSystem{
 	public static getInstance(): NetClient
 	{
 		if (!NetClient.instance)
-			console.error("Клиент не создан !");
+			console.error("ClientSystem не создан !");
 		return NetClient.instance;
 	}
 

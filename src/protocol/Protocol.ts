@@ -570,35 +570,35 @@ export const MessageScWorldStateUpdate = {
 }
 
 
-export interface IScRemoveE extends IMessage{
+export interface IScRemoveEntity extends IMessage{
 	readonly idEntity : number;	
 }
 
-export const MessageScRemoveE = {
+export const MessageScRemoveEntity = {
 
-	Pack(view:DataHelper, message:IScRemoveE): number {
-		view.writeByte(MessageScRemoveE.GetType());
+	Pack(view:DataHelper, message:IScRemoveEntity): number {
+		view.writeByte(MessageScRemoveEntity.GetType());
 		var len = this.PackMessage(message, view);
 		return 1 + len;
 	},
 
-	PackMessage(message:IScRemoveE, view:DataHelper):number {
+	PackMessage(message:IScRemoveEntity, view:DataHelper):number {
 		var a;
 		const before = view.length;
 
 		if (message.idEntity > 65535 || message.idEntity < 0)
-			throw new Error('protogen: protocol.sc_remove_e.id_entity out of reach: '+ message.idEntity);
+			throw new Error('protogen: protocol.sc_remove_entity.id_entity out of reach: '+ message.idEntity);
 		view.writeUint16(message.idEntity);
 
 		const after = view.length;
 		return after - before;
 	},
 
-	UnPackMessage(view:DataHelper): IScRemoveE {
+	UnPackMessage(view:DataHelper): IScRemoveEntity {
 
 		var prop_idEntity = view.readUint16();
 
-		var message:IScRemoveE = {
+		var message:IScRemoveEntity = {
 				idEntity : prop_idEntity,
 		};
 		return message;
@@ -609,7 +609,7 @@ export const MessageScRemoveE = {
 	},
 
 	GetName(){
-		return 'IScRemoveE';
+		return 'IScRemoveEntity';
 	}
 }
 
@@ -949,7 +949,7 @@ export const TypMessages = {
 	8: MessageVector2Int16,
 	9: MessageEntityInfo,
 	10: MessageScWorldStateUpdate,
-	11: MessageScRemoveE,
+	11: MessageScRemoveEntity,
 	12: MessageCsInput,
 	13: MessageCsMouseAngle,
 	14: MessageScJoin,
@@ -970,7 +970,7 @@ export const IdMessages = {
 	IVector2Int16:8,
 	IEntityInfo:9,
 	IScWorldStateUpdate:10,
-	IScRemoveE:11,
+	IScRemoveEntity:11,
 	ICsInput:12,
 	ICsMouseAngle:13,
 	IScJoin:14,
@@ -1024,8 +1024,8 @@ export const MessagesHelper = {
 		return MessageScWorldStateUpdate.Pack(view, message);
 	},
 
-	PackScRemoveE(view:DataHelper, message:IScRemoveE): number{
-		return MessageScRemoveE.Pack(view, message);
+	PackScRemoveEntity(view:DataHelper, message:IScRemoveEntity): number{
+		return MessageScRemoveEntity.Pack(view, message);
 	},
 
 	PackCsInput(view:DataHelper, message:ICsInput): number{

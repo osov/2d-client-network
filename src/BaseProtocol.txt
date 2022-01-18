@@ -52,7 +52,7 @@ type sc_world_state_update struct{
 	list []EntityInfo
 }
 
-type sc_remove_e struct{
+type sc_remove_entity struct{
 	id_entity uint16
 }
 

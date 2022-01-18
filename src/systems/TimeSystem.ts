@@ -14,11 +14,20 @@ export class TimeSystem extends BaseSystem{
 
 	private events:CallbackInfo[] = [];
 	private net:NetClient;
+	private static instance: TimeSystem;
+
+	public static getInstance(): TimeSystem
+	{
+		if (!TimeSystem.instance)
+			console.error("TimeSystem не создан !");
+		return TimeSystem.instance;
+	}
 
 	constructor()
 	{
 		super();
 		this.net = NetClient.getInstance();
+		TimeSystem.instance = this;
 	}
 
 	addDelayEvent(delay:number, handler:CallbackTime, data:any = null)

@@ -81,9 +81,9 @@ export class ClientSystem extends BaseSystem{
 		}
 		else
 		{
-			if (event.typ == protocol.IdMessages.IScRemoveE)
+			if (event.typ == protocol.IdMessages.IScRemoveEntity)
 			{
-				let message = event.message as protocol.IScRemoveE;
+				let message = event.message as protocol.IScRemoveEntity;
 				if (message.idEntity == this.idLocalEntity)
 					this.idLocalEntity = -1;
 			}

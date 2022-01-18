@@ -75,7 +75,8 @@ export class BaseStrategy extends BaseComponent{
 		if (!this.getState(deltaTime))
 			return;
 		this.entity.setPosition(this.state.position);
-		this.entity.setRotationDeg(this.state.angle);
+		if (this.entity.getRotationDeg() != this.state.angle)
+			this.entity.setRotationDeg(this.state.angle);
 		this.entity.setVelocity(this.state.velocity);
 	}
 
