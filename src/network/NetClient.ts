@@ -11,6 +11,7 @@ export interface InitNetParams{
 	idSession:string;
 }
 
+
 export class NetClient extends BaseSystem{
 
 	private batchInterval = 1/30;

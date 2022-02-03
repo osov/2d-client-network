@@ -1,5 +1,5 @@
 import {Vector2} from 'three';
-import {BaseComponent, BaseEntity} from 'ecs-threejs';
+import {MonoBehaviour, BaseEntity} from 'ecs-threejs';
 import {NetClient} from '../network/NetClient';
 
 export interface IStateEntity{
@@ -14,7 +14,7 @@ export enum TypPack{
 }
 
 
-export class BaseStrategy extends BaseComponent{
+export class BaseStrategy extends MonoBehaviour{
 
 	protected worldSize:Vector2 = new Vector2();
 	protected worldWrap:boolean = true;
@@ -39,7 +39,7 @@ export class BaseStrategy extends BaseComponent{
 		this.worldSize = e.wrapConfig.worldSize;
 		this.worldWrap = e.wrapConfig.worldWrap;
 		this.addedServerTime = this.net.getLastServerTime();
-		var pos = this.entity.getPosition();
+		var pos = this.gameObject.getPosition();
 		this.startPos = new Vector2(pos.x, pos.y);
 	}
 
@@ -74,10 +74,10 @@ export class BaseStrategy extends BaseComponent{
 	{
 		if (!this.getState(deltaTime))
 			return;
-		this.entity.setPosition(this.state.position);
-		if (this.entity.getRotationDeg() != this.state.angle)
-			this.entity.setRotationDeg(this.state.angle);
-		this.entity.setVelocity(this.state.velocity);
+		this.gameObject.setPosition(this.state.position);
+		if (this.gameObject.getRotationDeg() != this.state.angle)
+			this.gameObject.setRotationDeg(this.state.angle);
+		this.gameObject.setVelocity(this.state.velocity);
 	}
 
 	getState(deltaTime:number)
